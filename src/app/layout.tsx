@@ -1,6 +1,7 @@
 import "./globals.css";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import { cn } from "@/lib/utils";
+import Script from "next/script";
 
 import type { Metadata } from "next";
 
@@ -36,6 +37,13 @@ export default function RootLayout({
         "font-sans"
       )}
     >
+      <head>
+        <Script
+          src="//unpkg.com/react-scan/dist/auto.global.js"
+          crossOrigin="anonymous"
+          strategy="beforeInteractive"
+        />
+      </head>
       <body
         suppressHydrationWarning
         className="bg-background text-foreground flex min-h-full flex-col"
