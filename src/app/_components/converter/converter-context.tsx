@@ -2,7 +2,7 @@
 
 import { createContext, use, useState, useRef } from "react";
 import type { ReactNode, ChangeEvent, DragEvent } from "react";
-import { convertFile, createZipBlob } from "@/lib/services";
+import { convertFile, createZipBlob, detectInputFormat } from "@/lib/services";
 import type { InputFormat, OutputFormat, QualityPreset } from "@/lib/services";
 
 const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
@@ -23,17 +23,14 @@ export interface FileItem {
 }
 
 interface ConverterContextValue {
-  inputFormat: InputFormat;
   outputFormat: OutputFormat;
   qualityPreset: QualityPreset;
   files: FileItem[];
   isDragOver: boolean;
   isConvertingAll: boolean;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
-  setInputFormat: (format: InputFormat) => void;
   setOutputFormat: (format: OutputFormat) => void;
   setQualityPreset: (preset: QualityPreset) => void;
-  handleInputFormatChange: (val: string | null) => void;
   handleOutputFormatChange: (val: string | null) => void;
   handleQualityChange: (val: string | null) => void;
   validateAndAddFiles: (incomingFiles: FileList | File[]) => void;
@@ -58,29 +55,12 @@ function formatSize(bytes: number): string {
 }
 
 export function ConverterProvider({ children }: { children: ReactNode }) {
-  const [inputFormat, setInputFormat] = useState<InputFormat>("PNG");
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("JPG");
   const [qualityPreset, setQualityPreset] = useState<QualityPreset>("medium");
   const [files, setFiles] = useState<FileItem[]>([]);
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
   const [isConvertingAll, setIsConvertingAll] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  function handleInputFormatChange(val: string | null) {
-    if (!val) return;
-    const newInput = val as InputFormat;
-    setInputFormat(newInput);
-
-    if (newInput === "PDF") {
-      if ((outputFormat as string) === "PDF") {
-        setOutputFormat("JPG");
-      }
-    } else {
-      if ((outputFormat as string) === (newInput as string)) {
-        setOutputFormat("JPG");
-      }
-    }
-  }
 
   function handleOutputFormatChange(val: string | null) {
     if (!val) return;
@@ -99,18 +79,14 @@ export function ConverterProvider({ children }: { children: ReactNode }) {
     let addedValidCount = 0;
 
     for (const file of fileArray) {
-      const ext = file.name.split(".").pop()?.toUpperCase() || "";
-      const isFormatMatch =
-        ext === inputFormat ||
-        (inputFormat === "JPG" && ext === "JPEG") ||
-        (inputFormat === "HEIC" && (ext === "HEIF" || ext === "HEIC"));
+      const detectedFormat = detectInputFormat(file);
 
       let status: "ready" | "rejected" = "ready";
       let errorMessage: string | undefined = undefined;
 
-      if (!isFormatMatch) {
+      if (!detectedFormat) {
         status = "rejected";
-        errorMessage = `Non-matching input format: expected .${inputFormat.toLowerCase()}`;
+        errorMessage = `Unsupported format. Accepted: JPG, PNG, WebP, AVIF, JXL, HEIC`;
       } else if (file.size > MAX_FILE_SIZE_BYTES) {
         status = "rejected";
         errorMessage = "File size exceeds 20MB limit";
@@ -126,7 +102,7 @@ export function ConverterProvider({ children }: { children: ReactNode }) {
         file,
         name: file.name,
         sizeFormatted: formatSize(file.size),
-        inputFormat,
+        inputFormat: detectedFormat ?? "JPG",
         outputFormat,
         status,
         progress: 0,
@@ -179,8 +155,7 @@ export function ConverterProvider({ children }: { children: ReactNode }) {
     );
 
     try {
-      const result = await convertFile(item.file, {
-        inputFormat: item.inputFormat,
+      const result = await convertFile(item.file, item.inputFormat, {
         outputFormat: item.outputFormat,
         qualityPreset,
         onProgress: (p) => {
@@ -262,17 +237,14 @@ export function ConverterProvider({ children }: { children: ReactNode }) {
   }
 
   const value: ConverterContextValue = {
-    inputFormat,
     outputFormat,
     qualityPreset,
     files,
     isDragOver,
     isConvertingAll,
     fileInputRef,
-    setInputFormat,
     setOutputFormat,
     setQualityPreset,
-    handleInputFormatChange,
     handleOutputFormatChange,
     handleQualityChange,
     validateAndAddFiles,

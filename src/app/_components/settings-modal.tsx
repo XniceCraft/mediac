@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FadersHorizontalIcon, FadersIcon, GearIcon } from "@phosphor-icons/react/ssr";
+import { FadersHorizontalIcon, FadersIcon } from "@phosphor-icons/react/ssr";
 import {
   Select,
   SelectTrigger,
@@ -19,9 +19,11 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useConverterContext } from "./converter/converter-context";
 
 export function SettingsModal() {
   const [open, setOpen] = useState(false);
+  const { qualityPreset, handleQualityChange } = useConverterContext();
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -44,7 +46,7 @@ export function SettingsModal() {
             <DialogTitle>Advanced Preset Settings</DialogTitle>
           </div>
           <DialogDescription>
-            Fine-tune image compression quality presets and document rasterization scale.
+            Fine-tune image compression quality for JPG and WebP output.
           </DialogDescription>
         </DialogHeader>
 
@@ -56,45 +58,23 @@ export function SettingsModal() {
                 Applies to JPG & WebP
               </span>
             </label>
-            <Select defaultValue="medium">
+            <Select value={qualityPreset} onValueChange={handleQualityChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Select quality preset" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="low">Low Quality (60% Compression)</SelectItem>
-                <SelectItem value="medium">Medium Quality (80% Optimal)</SelectItem>
-                <SelectItem value="high">High Quality (90% Crisp)</SelectItem>
+                <SelectItem value="low">Low Quality (60%)</SelectItem>
+                <SelectItem value="medium">Medium Quality (80%)</SelectItem>
+                <SelectItem value="high">High Quality (90%)</SelectItem>
                 <SelectItem value="lossless">Lossless Quality (100%)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-foreground flex items-center justify-between text-xs font-semibold">
-              PDF Render Scale / DPI
-              <span className="text-muted-foreground text-[11px] font-normal">
-                PDF to Image Raster
-              </span>
-            </label>
-            <Select defaultValue="1.5">
-              <SelectTrigger>
-                <SelectValue placeholder="Select DPI scale" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1.0">Standard 1.0x (150 DPI)</SelectItem>
-                <SelectItem value="1.5">Balanced 1.5x (225 DPI)</SelectItem>
-                <SelectItem value="2.0">Ultra High 2.0x (300 DPI)</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
-            Close
-          </Button>
           <Button variant="default" onClick={() => setOpen(false)}>
-            Save Preferences
+            Done
           </Button>
         </DialogFooter>
       </DialogContent>

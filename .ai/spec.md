@@ -7,24 +7,22 @@
 
 ## Conversion Matrix
 
-| Input                          | Output              |
-| ------------------------------ | ------------------- |
-| JPG, PNG, WebP, SVG, GIF, HEIC | JPG, PNG, WebP, PDF |
-| PDF                            | JPG, PNG, WebP      |
+| Input                           | Output              |
+| ------------------------------- | ------------------- |
+| JPG, PNG, WebP, Avif, JXL, HEIC | JPG, PNG, WebP, PDF |
 
 ---
 
 ## User Flow
 
-1. Select **input format** (specific, one)
-2. Select **output format**
-3. Upload files — non-matching files are **rejected**
-4. Set quality preset
-5. Convert → download
+1. Select **output format**
+2. Upload files — non-matching files are **rejected**
+3. Set quality preset
+4. Convert → download
 
 ---
 
-## File Limits
+## File Limits (Soft Limit, warn if exceeds)
 
 - Max **20MB per file**
 - Max **20 files per batch**
@@ -50,7 +48,7 @@
 
 - Fully **client-side** — no backend
 - HEIC decoding via **lazy-loaded WASM** module
-- PDF rendering via **PDF.js**
+- PDF rendering via **pdf-lib**
 
 ---
 

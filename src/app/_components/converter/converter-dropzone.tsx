@@ -6,7 +6,6 @@ import { useConverterContext } from "./converter-context";
 
 export function ConverterDropzone() {
   const {
-    inputFormat,
     isDragOver,
     fileInputRef,
     handleFileSelect,
@@ -14,13 +13,6 @@ export function ConverterDropzone() {
     handleDragLeave,
     handleDrop,
   } = useConverterContext();
-
-  const acceptString =
-    inputFormat === "PDF"
-      ? ".pdf,application/pdf"
-      : inputFormat === "HEIC"
-        ? ".heic,.heif"
-        : `.${inputFormat.toLowerCase()}`;
 
   return (
     <div>
@@ -30,7 +22,7 @@ export function ConverterDropzone() {
         onChange={handleFileSelect}
         multiple
         className="hidden"
-        accept={acceptString}
+        accept=".jpg,.jpeg,.png,.webp,.avif,.jxl,.heic,.heif"
       />
 
       <div
@@ -46,16 +38,15 @@ export function ConverterDropzone() {
           <UploadSimpleIcon className="size-6" />
         </div>
         <h3 className="text-foreground mb-1 text-base font-semibold">
-          Drop your <span className="text-primary font-bold">.{inputFormat.toLowerCase()}</span>{" "}
-          files here or click to upload
+          Drop your images here or click to upload
         </h3>
         <p className="text-muted-foreground mb-4 max-w-sm text-xs">
-          Only <strong className="text-foreground">.{inputFormat.toLowerCase()}</strong> files are
-          accepted for this batch. Max 20MB per file, up to 20 files per batch.
+          Accepted: <strong className="text-foreground">JPG, PNG, WebP, AVIF, JXL, HEIC</strong>.
+          Max 20MB per file, up to 20 files per batch.
         </p>
         <Button variant="default" size="sm" className="cursor-pointer gap-1.5">
           <FolderOpenIcon className="size-4" />
-          Select .{inputFormat.toLowerCase()} Files
+          Select Images
         </Button>
       </div>
     </div>

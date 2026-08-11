@@ -3,7 +3,6 @@
 import type { ElementType } from "react";
 import {
   ImageIcon,
-  FilePdfIcon,
   ArrowsClockwiseIcon,
   DownloadSimpleIcon,
   TrashIcon,
@@ -20,7 +19,7 @@ import type { FileItem } from "./converter-context";
 
 export function ConverterItem({ item }: { item: FileItem }) {
   const { removeFile, convertSingleFile, downloadSingleFile } = useConverterContext();
-  const IconComponent: ElementType = item.inputFormat === "PDF" ? FilePdfIcon : ImageIcon;
+  const IconComponent: ElementType = ImageIcon;
 
   return (
     <div
