@@ -87,16 +87,6 @@ export function SettingsModal() {
               </SelectContent>
             </Select>
           </div>
-
-          <div className="bg-muted/60 text-muted-foreground space-y-1 rounded-lg p-3 text-xs">
-            <div className="text-foreground flex items-center gap-1.5 font-medium">
-              <GearIcon className="text-primary size-4" />
-              v1 Specification Compliance
-            </div>
-            <p>
-              Max 20MB per file and max 20 files per batch limits are active across all conversions.
-            </p>
-          </div>
         </div>
 
         <DialogFooter>
