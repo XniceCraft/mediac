@@ -59,13 +59,6 @@ const formatCatalog: FormatItem[] = [
     description: "Modern high-efficiency photo container used on mobile devices.",
     targets: ["JPG", "PNG", "WEBP", "PDF"],
   },
-  {
-    ext: "PDF",
-    name: "Portable Document Format",
-    category: "document",
-    description: "Universal document format for publishing and multi-page document distribution.",
-    targets: ["JPG", "PNG", "WEBP"],
-  },
 ];
 
 export default function FormatsPage() {

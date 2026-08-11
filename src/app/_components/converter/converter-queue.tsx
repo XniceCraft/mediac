@@ -1,8 +1,7 @@
 "use client";
 
-import type { ElementType } from "react";
+import { useEffect, useRef } from "react";
 import {
-  ImageIcon,
   ArrowsClockwiseIcon,
   DownloadSimpleIcon,
   TrashIcon,
@@ -15,11 +14,29 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useConverterContext } from "./converter-context";
+import { cn } from "@/lib/utils";
+
 import type { FileItem } from "./converter-context";
+
+function PreviewImage({ file, className }: { file: File; className?: string }) {
+  const imageRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    if (!imageRef.current) return;
+
+    const source = URL.createObjectURL(file);
+    imageRef.current.src = source;
+
+    return () => {
+      URL.revokeObjectURL(source);
+    };
+  }, [file]);
+
+  return <img ref={imageRef} alt="Preview" className={className} />;
+}
 
 export function ConverterItem({ item }: { item: FileItem }) {
   const { removeFile, convertSingleFile, downloadSingleFile } = useConverterContext();
-  const IconComponent: ElementType = ImageIcon;
 
   return (
     <div
@@ -29,15 +46,13 @@ export function ConverterItem({ item }: { item: FileItem }) {
     >
       <div className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
-          <div
-            className={`flex size-9 shrink-0 items-center justify-center rounded-md ${
-              item.status === "rejected"
-                ? "bg-destructive/15 text-destructive"
-                : "bg-primary/10 text-primary"
-            }`}
-          >
-            <IconComponent className="size-5" />
-          </div>
+          <PreviewImage
+            file={item.file}
+            className={cn(
+              "size-9 shrink-0 rounded-md object-contain",
+              item.status === "rejected" ? "border-destructive/15" : "border-primary/10"
+            )}
+          />
 
           <div className="min-w-0 space-y-0.5">
             <p className="text-foreground truncate text-sm font-semibold">{item.name}</p>

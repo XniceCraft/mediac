@@ -2,7 +2,6 @@ import { SparkleIcon } from "@phosphor-icons/react/ssr";
 import { Navbar } from "@/components/navbar/navbar";
 import { Footer } from "@/components/footer/footer";
 import { Converter } from "./_components/converter";
-import { SettingsModal } from "./_components/settings-modal";
 
 export default function Home() {
   return (
@@ -27,9 +26,7 @@ export default function Home() {
         <Converter.Root>
           <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-12">
             <div className="space-y-6 md:col-span-5 lg:col-span-4">
-              <Converter.Options>
-                <SettingsModal />
-              </Converter.Options>
+              <Converter.Options />
             </div>
 
             <div className="space-y-6 md:col-span-7 lg:col-span-8">

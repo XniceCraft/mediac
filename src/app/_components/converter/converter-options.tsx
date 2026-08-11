@@ -29,7 +29,9 @@ export function ConverterOptions({ children }: { children?: React.ReactNode }) {
     <Card className="border-border shadow-md">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-primary text-base font-semibold">1. Output Setup</CardTitle>
+          <CardTitle className="text-primary text-base font-semibold">
+            Output Configuration
+          </CardTitle>
           {children}
         </div>
         <CardDescription>Select your target output format and quality preset.</CardDescription>

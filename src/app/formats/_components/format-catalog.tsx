@@ -1,12 +1,7 @@
 "use client";
 
 import { createContext, use, useMemo, useState } from "react";
-import {
-  ImageIcon,
-  FilePdfIcon,
-  MagnifyingGlassIcon,
-  ArrowRightIcon,
-} from "@phosphor-icons/react/ssr";
+import { ImageIcon, MagnifyingGlassIcon, ArrowRightIcon } from "@phosphor-icons/react/ssr";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -94,9 +89,6 @@ export function FormatCatalogTabs() {
         </TabsTrigger>
         <TabsTrigger value="image" className="text-xs">
           <ImageIcon className="mr-1 size-3.5" /> Image Formats
-        </TabsTrigger>
-        <TabsTrigger value="document" className="text-xs">
-          <FilePdfIcon className="mr-1 size-3.5" /> Document Formats
         </TabsTrigger>
       </TabsList>
     </Tabs>
