@@ -15,9 +15,60 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono",
 });
 
+const APP_URL = "https://mediac.xnicecraft.my.id";
+
 export const metadata: Metadata = {
-  title: "MediaC - Fast & Secure Media Converter",
-  description: "Convert video, audio, image, and document files instantly in your browser.",
+  metadataBase: new URL(APP_URL),
+  title: {
+    default: "MediaC — Fast & Secure Media Converter",
+    template: "%s — MediaC",
+  },
+  description:
+    "Convert images, documents, and media files instantly in your browser. 100% client-side — no uploads, no server, full privacy.",
+  keywords: [
+    "media converter",
+    "image converter",
+    "document converter",
+    "JPG to PNG",
+    "WebP converter",
+    "PDF converter",
+    "HEIC converter",
+    "browser converter",
+    "client-side converter",
+    "free file converter",
+  ],
+  authors: [{ name: "XniceCraft" }],
+  creator: "XniceCraft",
+  publisher: "XniceCraft",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      "index": true,
+      "follow": true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: APP_URL,
+    siteName: "MediaC",
+    title: "MediaC — Fast & Secure Media Converter",
+    description:
+      "Convert images, documents, and media files instantly in your browser. 100% client-side — no uploads, no server, full privacy.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MediaC — Fast & Secure Media Converter",
+    description:
+      "Convert images, documents, and media files instantly in your browser. 100% client-side — no uploads, no server, full privacy.",
+  },
+  category: "technology",
 };
 
 export default function RootLayout({

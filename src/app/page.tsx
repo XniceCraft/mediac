@@ -1,12 +1,12 @@
 import { SparkleIcon } from "@phosphor-icons/react/ssr";
-import { Navbar } from "@/components/navbar";
-import { Footer } from "@/components/footer";
+import { Navbar } from "@/components/navbar/navbar";
+import { Footer } from "@/components/footer/footer";
 import { Converter } from "./_components/converter";
 import { SettingsModal } from "./_components/settings-modal";
 
 export default function Home() {
   return (
-    <div className="bg-background flex min-h-screen flex-col">
+    <>
       <Navbar />
 
       <main className="mx-auto w-full max-w-7xl flex-1 space-y-10 px-4 py-8 sm:px-6 md:py-12 lg:px-8">
@@ -41,6 +41,6 @@ export default function Home() {
       </main>
 
       <Footer />
-    </div>
+    </>
   );
 }
