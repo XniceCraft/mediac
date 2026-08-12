@@ -17,15 +17,19 @@ export function ConverterDropzone() {
   return (
     <div>
       <input
+        id="file-upload-input"
         type="file"
         ref={fileInputRef}
         onChange={handleFileSelect}
         multiple
         className="hidden"
         accept=".jpg,.jpeg,.png,.webp,.avif,.jxl,.heic,.heif"
+        aria-label="Upload media files for conversion"
       />
 
       <div
+        role="region"
+        aria-label="File dropzone"
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -37,12 +41,11 @@ export function ConverterDropzone() {
         <div className="bg-primary/10 text-primary mb-3 flex size-12 items-center justify-center rounded-full transition-transform group-hover:scale-105">
           <UploadSimpleIcon className="size-6" />
         </div>
-        <h3 className="text-foreground mb-1 text-base font-semibold">
+        <h3 className="text-foreground mb-3 text-base font-semibold">
           Drop your images here or click to upload
         </h3>
-        <p className="text-muted-foreground mb-4 max-w-sm text-xs">
+        <p className="text-muted-foreground mb-6 max-w-sm text-xs">
           Accepted: <strong className="text-foreground">JPG, PNG, WebP, AVIF, JXL, HEIC</strong>.
-          Max 20MB per file, up to 20 files per batch.
         </p>
         <Button variant="default" size="sm" className="cursor-pointer gap-1.5">
           <FolderOpenIcon className="size-4" />

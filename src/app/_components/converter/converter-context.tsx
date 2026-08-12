@@ -1,12 +1,9 @@
 "use client";
 
 import { createContext, use, useState, useRef } from "react";
-import type { ReactNode, ChangeEvent, DragEvent } from "react";
 import { convertFile, createZipBlob, detectInputFormat } from "@/lib/services";
-import type { InputFormat, OutputFormat, QualityPreset } from "@/lib/services";
 
-const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
-const MAX_BATCH_FILE_COUNT = 20;
+import type { InputFormat, OutputFormat, QualityPreset } from "@/lib/services";
 
 export interface FileItem {
   id: string;
@@ -34,10 +31,10 @@ interface ConverterContextValue {
   handleOutputFormatChange: (val: string | null) => void;
   handleQualityChange: (val: string | null) => void;
   validateAndAddFiles: (incomingFiles: FileList | File[]) => void;
-  handleFileSelect: (e: ChangeEvent<HTMLInputElement>) => void;
-  handleDragOver: (e: DragEvent<HTMLDivElement>) => void;
-  handleDragLeave: (e: DragEvent<HTMLDivElement>) => void;
-  handleDrop: (e: DragEvent<HTMLDivElement>) => void;
+  handleFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleDragOver: (e: React.DragEvent<HTMLDivElement>) => void;
+  handleDragLeave: (e: React.DragEvent<HTMLDivElement>) => void;
+  handleDrop: (e: React.DragEvent<HTMLDivElement>) => void;
   removeFile: (id: string) => void;
   clearQueue: () => void;
   convertSingleFile: (id: string) => Promise<void>;
@@ -54,7 +51,7 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function ConverterProvider({ children }: { children: ReactNode }) {
+export function ConverterProvider({ children }: { children: React.ReactNode }) {
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("JPG");
   const [qualityPreset, setQualityPreset] = useState<QualityPreset>("medium");
   const [files, setFiles] = useState<FileItem[]>([]);
@@ -75,8 +72,6 @@ export function ConverterProvider({ children }: { children: ReactNode }) {
   function validateAndAddFiles(incomingFiles: FileList | File[]) {
     const fileArray = Array.from(incomingFiles);
     const newItems: FileItem[] = [];
-    const validCountInBatch = files.filter((f) => f.status !== "rejected").length;
-    let addedValidCount = 0;
 
     for (const file of fileArray) {
       const detectedFormat = detectInputFormat(file);
@@ -87,14 +82,6 @@ export function ConverterProvider({ children }: { children: ReactNode }) {
       if (!detectedFormat) {
         status = "rejected";
         errorMessage = `Unsupported format. Accepted: JPG, PNG, WebP, AVIF, JXL, HEIC`;
-      } else if (file.size > MAX_FILE_SIZE_BYTES) {
-        status = "rejected";
-        errorMessage = "File size exceeds 20MB limit";
-      } else if (validCountInBatch + addedValidCount >= MAX_BATCH_FILE_COUNT) {
-        status = "rejected";
-        errorMessage = `Max 20 files per batch limit reached`;
-      } else {
-        addedValidCount++;
       }
 
       newItems.push({
@@ -113,24 +100,24 @@ export function ConverterProvider({ children }: { children: ReactNode }) {
     setFiles((prev) => [...prev, ...newItems]);
   }
 
-  function handleFileSelect(e: ChangeEvent<HTMLInputElement>) {
+  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files.length > 0) {
       validateAndAddFiles(e.target.files);
       e.target.value = "";
     }
   }
 
-  function handleDragOver(e: DragEvent<HTMLDivElement>) {
+  function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
     e.preventDefault();
     setIsDragOver(true);
   }
 
-  function handleDragLeave(e: DragEvent<HTMLDivElement>) {
+  function handleDragLeave(e: React.DragEvent<HTMLDivElement>) {
     e.preventDefault();
     setIsDragOver(false);
   }
 
-  function handleDrop(e: DragEvent<HTMLDivElement>) {
+  function handleDrop(e: React.DragEvent<HTMLDivElement>) {
     e.preventDefault();
     setIsDragOver(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {

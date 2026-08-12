@@ -7,19 +7,23 @@ export function Footer() {
         <div className="mb-8 grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="space-y-3 md:col-span-2">
             <div className="text-primary flex items-center gap-2 text-lg font-bold">
-              <img src="/assets/image/logo.webp" alt="Logo" className="block size-8 rounded-lg" />
+              <img
+                src="/assets/image/logo.webp"
+                alt="MediaC Logo"
+                className="block size-8 rounded-lg"
+              />
               <span>
                 Media<span className="text-accent">C</span>
               </span>
             </div>
             <p className="text-muted-foreground max-w-sm text-sm">
-              Fast, privacy-focused media converter for audio, video, image, and document files
-              directly in your web browser.
+              Fast, privacy-focused media converter for images and documents directly in your web
+              browser.
             </p>
           </div>
 
-          <div>
-            <h4 className="text-foreground mb-3 text-sm font-semibold">Resources</h4>
+          <nav aria-label="Footer Navigation">
+            <h2 className="text-foreground mb-3 text-sm font-semibold">Resources</h2>
             <ul className="text-muted-foreground space-y-2 text-sm">
               <li>
                 <Link href="/" className="hover:text-primary cursor-pointer transition-colors">
@@ -35,11 +39,11 @@ export function Footer() {
                 </Link>
               </li>
             </ul>
-          </div>
+          </nav>
         </div>
 
         <div className="border-border text-muted-foreground flex flex-col items-center justify-between gap-4 border-t pt-6 text-xs sm:flex-row">
-          <p>© {new Date().getFullYear()} MediaC Utility. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} MediaC. All rights reserved.</p>
         </div>
       </div>
     </footer>

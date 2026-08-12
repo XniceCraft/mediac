@@ -1,7 +1,6 @@
 "use client";
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectTrigger,
@@ -10,6 +9,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { useConverterContext } from "./converter-context";
+
 import type { OutputFormat } from "@/lib/services";
 
 const OUTPUT_FORMAT_OPTIONS: Array<{ value: OutputFormat; label: string }> = [
@@ -20,7 +20,7 @@ const OUTPUT_FORMAT_OPTIONS: Array<{ value: OutputFormat; label: string }> = [
 ];
 
 export function ConverterOptions({ children }: { children?: React.ReactNode }) {
-  const { outputFormat, qualityPreset, files, handleOutputFormatChange, handleQualityChange } =
+  const { outputFormat, qualityPreset, handleOutputFormatChange, handleQualityChange } =
     useConverterContext();
 
   const isQualityActive = outputFormat === "JPG" || outputFormat === "WEBP";
@@ -87,16 +87,6 @@ export function ConverterOptions({ children }: { children?: React.ReactNode }) {
               ? "Applies to JPG and WebP outputs."
               : "Quality presets only apply when converting to JPG or WebP."}
           </p>
-        </div>
-
-        <div className="border-border text-muted-foreground flex items-center justify-between border-t pt-3 text-xs">
-          <span>
-            Batch Queue:{" "}
-            <strong className="text-foreground font-semibold">{files.length} / 20</strong>
-          </span>
-          <Badge variant="success" className="text-[11px]">
-            Max 20MB / file
-          </Badge>
         </div>
       </CardContent>
     </Card>

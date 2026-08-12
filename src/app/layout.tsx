@@ -17,6 +17,22 @@ const jetbrainsMono = JetBrains_Mono({
 
 const APP_URL = "https://mediac.xnicecraft.my.id";
 
+const webAppJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "MediaC",
+  "url": APP_URL,
+  "description":
+    "Convert images, documents, and media files instantly in your browser. 100% client-side — no uploads, no server, full privacy.",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Any",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD",
+  },
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
@@ -89,6 +105,10 @@ export default function RootLayout({
       )}
     >
       <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppJsonLd) }}
+        />
         {process.env.NODE_ENV === "development" && (
           <Script
             src="//unpkg.com/react-scan/dist/auto.global.js"

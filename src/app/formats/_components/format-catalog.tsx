@@ -2,7 +2,7 @@
 
 import { createContext, use, useMemo, useState } from "react";
 import { ImageIcon, MagnifyingGlassIcon, ArrowRightIcon } from "@phosphor-icons/react/ssr";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -83,7 +83,7 @@ export function FormatCatalogTabs() {
 
   return (
     <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full sm:w-auto">
-      <TabsList>
+      <TabsList aria-label="Filter formats by category">
         <TabsTrigger value="all" className="text-xs">
           All ({items.length})
         </TabsTrigger>
@@ -102,10 +102,12 @@ export function FormatCatalogSearch() {
     <div className="relative w-full sm:w-72">
       <MagnifyingGlassIcon className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
       <input
+        id="format-search-input"
         type="text"
         placeholder="Search format (e.g. HEIC, PDF)..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
+        aria-label="Search supported file formats"
         className="bg-background border-border focus:ring-ring w-full rounded-md border py-2 pr-4 pl-9 text-sm transition-colors focus:ring-2 focus:outline-none"
       />
     </div>
@@ -118,7 +120,7 @@ export function FormatCatalogCard({ format }: { format: FormatItem }) {
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="flex items-center gap-3">
           <div>
-            <CardTitle className="text-foreground text-base font-bold">{format.ext}</CardTitle>
+            <h3 className="text-foreground text-base font-bold">{format.ext}</h3>
             <p className="text-muted-foreground text-xs">{format.name}</p>
           </div>
         </div>
