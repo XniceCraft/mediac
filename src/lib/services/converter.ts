@@ -1,4 +1,3 @@
-import { PDFDocument } from "pdf-lib";
 import { createZipBlob } from "@/lib/services/zip";
 
 export type InputFormat = "JPG" | "PNG" | "WEBP" | "AVIF" | "JXL" | "HEIC";
@@ -100,7 +99,10 @@ async function encodeToBlob(
   quality: number
 ): Promise<Blob> {
   if (format === "PDF") {
-    const { encode } = await import("@jsquash/png");
+    const [{ PDFDocument }, { encode }] = await Promise.all([
+      import("pdf-lib"),
+      import("@jsquash/png"),
+    ]);
     const pngBytes = await encode(imageData);
     const pdf = await PDFDocument.create();
     const img = await pdf.embedPng(pngBytes);
