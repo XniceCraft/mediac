@@ -19,7 +19,7 @@ export function Navbar() {
         <h1>
           <Link
             href="/"
-            className="text-primary top-1/2 left-8 flex items-center gap-2 text-xl font-bold tracking-tight transition-opacity hover:opacity-90 sm:absolute sm:-translate-y-1/2"
+            className="top-1/2 left-8 flex items-center gap-2 text-xl font-bold tracking-tight transition-opacity hover:opacity-90 sm:absolute sm:-translate-y-1/2"
           >
             <img
               src="/assets/image/logo.webp"
@@ -27,7 +27,7 @@ export function Navbar() {
               className="block size-8 rounded-lg"
             />
 
-            <span className="text-primary text-xl font-bold tracking-tight">
+            <span className="hidden text-xl font-bold tracking-tight sm:block">
               Media<span className="text-accent">C</span>
             </span>
           </Link>

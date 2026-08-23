@@ -1,16 +1,17 @@
 import { createZipBlob } from "@/lib/services/zip";
+import { resizeImage } from "@/lib/services/resize";
 
-export type InputFormat = "JPG" | "PNG" | "WEBP" | "AVIF" | "JXL" | "HEIC";
-export type OutputFormat = "JPG" | "PNG" | "WEBP" | "PDF";
-export type QualityPreset = "low" | "medium" | "high" | "lossless";
+import type { InputFormat, QualityPreset, OutputFormat } from "@/types/converter";
+import type { ResizeOption } from "@/types/resize";
 
-export interface ConversionOptions {
+interface ConversionOptions {
   outputFormat: OutputFormat;
   qualityPreset: QualityPreset;
+  resizeOption: ResizeOption;
   onProgress?: (progress: number) => void;
 }
 
-export interface ConversionResult {
+interface ConversionResult {
   blob: Blob;
   fileName: string;
   isZip?: boolean;
@@ -22,17 +23,6 @@ const QUALITY_VALUES: Record<QualityPreset, number> = {
   high: 90,
   lossless: 100,
 };
-
-export function detectInputFormat(file: File): InputFormat | null {
-  const ext = file.name.split(".").pop()?.toUpperCase() ?? "";
-  if (ext === "JPG" || ext === "JPEG") return "JPG";
-  if (ext === "PNG") return "PNG";
-  if (ext === "WEBP") return "WEBP";
-  if (ext === "AVIF") return "AVIF";
-  if (ext === "JXL") return "JXL";
-  if (ext === "HEIC" || ext === "HEIF") return "HEIC";
-  return null;
-}
 
 async function decodeToImageData(file: File, inputFormat: InputFormat): Promise<ImageData> {
   const arrayBuffer = await file.arrayBuffer();
@@ -136,17 +126,20 @@ export async function convertFile(
   inputFormat: InputFormat,
   options: ConversionOptions
 ): Promise<ConversionResult> {
-  const { outputFormat, qualityPreset, onProgress } = options;
+  const { outputFormat, qualityPreset, resizeOption, onProgress } = options;
   const baseName = file.name.replace(/\.[^/.]+$/, "");
   const quality = QUALITY_VALUES[qualityPreset] ?? 80;
 
-  if (onProgress) onProgress(20);
+  onProgress?.(20);
 
   const imageData = await decodeToImageData(file, inputFormat);
-  if (onProgress) onProgress(60);
+  onProgress?.(40);
 
-  const blob = await encodeToBlob(imageData, outputFormat, quality);
-  if (onProgress) onProgress(100);
+  const resizedImageData = await resizeImage(imageData, resizeOption);
+  onProgress?.(60);
+
+  const blob = await encodeToBlob(resizedImageData, outputFormat, quality);
+  onProgress?.(100);
 
   const ext = outputFormat === "JPG" ? "jpg" : outputFormat.toLowerCase();
   const fileName = `${baseName}_converted.${ext}`;
@@ -166,5 +159,6 @@ export async function convertFilesToZip(
     name: item.convertedFileName,
     blob: item.convertedBlob,
   }));
+
   return createZipBlob(zipFiles);
 }

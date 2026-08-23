@@ -15,7 +15,3 @@ export const Converter = {
   Item: ConverterItem,
   Provider: ConverterProvider,
 };
-
-export { useConverterContext } from "./converter-context";
-
-export type { FileItem } from "./converter-context";

@@ -6,7 +6,6 @@ import {
   DownloadSimpleIcon,
   TrashIcon,
   CheckCircleIcon,
-  WarningCircleIcon,
   ArchiveIcon,
 } from "@phosphor-icons/react/ssr";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -16,7 +15,7 @@ import { Progress } from "@/components/ui/progress";
 import { useConverterContext } from "./converter-context";
 import { cn } from "@/lib/utils";
 
-import type { FileItem } from "./converter-context";
+import type { FileItem } from "@/types/converter";
 
 function PreviewImage({ file, className }: { file: File; className?: string }) {
   const imageRef = useRef<HTMLImageElement>(null);
@@ -36,45 +35,31 @@ function PreviewImage({ file, className }: { file: File; className?: string }) {
 }
 
 export function ConverterItem({ item }: { item: FileItem }) {
-  const { removeFile, convertSingleFile, downloadSingleFile } = useConverterContext();
+  const { removeFile, convert, download } = useConverterContext();
 
   return (
-    <div
-      className={`border-border bg-background flex flex-col gap-2.5 rounded-lg border p-4 transition-all ${
-        item.status === "rejected" ? "border-destructive/40 bg-destructive/5" : ""
-      }`}
-    >
+    <div className="border-border bg-background flex flex-col gap-2.5 rounded-lg border p-4 transition-all">
       <div className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
-          <PreviewImage
-            file={item.file}
-            className={cn(
-              "size-9 shrink-0 rounded-md object-contain",
-              item.status === "rejected" ? "border-destructive/15" : "border-primary/10"
-            )}
-          />
+          <PreviewImage file={item.file} className="size-9 shrink-0 rounded-md object-contain" />
 
           <div className="min-w-0 space-y-0.5">
             <p className="text-foreground truncate text-sm font-semibold">{item.name}</p>
-            <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
-              <span>{item.sizeFormatted}</span>
-              <span>•</span>
-              <Badge variant="outline" className="px-1.5 py-0 text-[10px] font-bold uppercase">
-                {item.inputFormat} → {item.outputFormat}
-              </Badge>
-            </div>
+            <p className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
+              {item.sizeFormatted}
+            </p>
           </div>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
           {item.status === "completed" && (
-            <Badge variant="success" className="gap-1">
+            <Badge className="gap-1">
               <CheckCircleIcon className="size-3.5" />
               Ready
             </Badge>
           )}
           {item.status === "converting" && (
-            <Badge variant="warning" className="gap-1">
+            <Badge className="gap-1">
               <ArrowsClockwiseIcon className="size-3.5 animate-spin" />
               {item.progress}%
             </Badge>
@@ -84,25 +69,14 @@ export function ConverterItem({ item }: { item: FileItem }) {
               Queued
             </Badge>
           )}
-          {item.status === "rejected" && (
-            <Badge variant="destructive" className="gap-1">
-              <WarningCircleIcon className="size-3.5" />
-              Rejected
-            </Badge>
-          )}
 
           {item.status === "completed" ? (
-            <Button
-              variant="default"
-              size="xs"
-              onClick={() => downloadSingleFile(item)}
-              className="gap-1"
-            >
+            <Button variant="default" size="xs" onClick={() => download(item)} className="gap-1">
               <DownloadSimpleIcon className="size-3.5" />
               Download
             </Button>
           ) : item.status === "ready" ? (
-            <Button variant="secondary" size="xs" onClick={() => convertSingleFile(item.id)}>
+            <Button variant="secondary" size="xs" onClick={() => convert(item.id)}>
               Convert
             </Button>
           ) : null}
@@ -119,20 +93,12 @@ export function ConverterItem({ item }: { item: FileItem }) {
       </div>
 
       {item.status === "converting" && <Progress value={item.progress} />}
-
-      {item.errorMessage && (
-        <div className="text-destructive flex items-center gap-1.5 text-xs font-medium">
-          <WarningCircleIcon className="size-3.5 shrink-0" />
-          <span>{item.errorMessage}</span>
-        </div>
-      )}
     </div>
   );
 }
 
 export function ConverterQueue() {
-  const { files, isConvertingAll, clearQueue, convertAllFiles, downloadAllAsZip } =
-    useConverterContext();
+  const { files, globalConvert, clearFiles, bulkConvert, bulkDownload } = useConverterContext();
 
   const readyCount = files.filter((f) => f.status === "ready").length;
   const completedCount = files.filter((f) => f.status === "completed").length;
@@ -152,8 +118,8 @@ export function ConverterQueue() {
             <Button
               variant="outline"
               size="sm"
-              onClick={downloadAllAsZip}
-              className="text-accent border-accent/30 hover:bg-accent/10 gap-1.5 text-xs"
+              onClick={bulkDownload}
+              className="text-accent border-primary/30 hover:bg-primary/10 gap-1.5 text-xs"
             >
               <ArchiveIcon className="size-4" />
               Download All as ZIP
@@ -164,7 +130,7 @@ export function ConverterQueue() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={clearQueue}
+              onClick={clearFiles}
               className="text-muted-foreground hover:text-destructive text-xs"
             >
               Clear
@@ -174,11 +140,11 @@ export function ConverterQueue() {
           <Button
             variant="default"
             size="sm"
-            disabled={readyCount === 0 || isConvertingAll}
-            onClick={convertAllFiles}
+            disabled={readyCount === 0 || globalConvert}
+            onClick={bulkConvert}
             className="flex items-center gap-1.5"
           >
-            <ArrowsClockwiseIcon className={`size-4 ${isConvertingAll ? "animate-spin" : ""}`} />
+            <ArrowsClockwiseIcon className={cn("size-4", globalConvert && "animate-spin")} />
             Convert ({readyCount})
           </Button>
         </div>

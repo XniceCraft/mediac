@@ -6,7 +6,7 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="space-y-3 md:col-span-2">
-            <div className="text-primary flex items-center gap-2 text-lg font-bold">
+            <div className="flex items-center gap-2 text-lg font-bold">
               <img
                 src="/assets/image/logo.webp"
                 alt="MediaC Logo"

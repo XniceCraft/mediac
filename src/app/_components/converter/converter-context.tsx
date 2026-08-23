@@ -1,259 +1,198 @@
 "use client";
 
-import { createContext, use, useState, useRef } from "react";
-import { convertFile, createZipBlob, detectInputFormat } from "@/lib/services";
+import { createContext, use, useCallback, useMemo, useRef, useState } from "react";
+import { createZipBlob } from "@/lib/services/zip";
+import { convertFile } from "@/lib/services/converter";
+import { detectInputFormat } from "@/lib/services/format";
+import { formatBytes } from "@/lib/utils/number";
+import type { ConverterSchema } from "@/lib/validations/converter";
 
-import type { InputFormat, OutputFormat, QualityPreset } from "@/lib/services";
+import type { FileItem } from "@/types/converter";
 
-export interface FileItem {
-  id: string;
-  file: File;
-  name: string;
-  sizeFormatted: string;
-  inputFormat: InputFormat;
-  outputFormat: OutputFormat;
-  status: "ready" | "converting" | "completed" | "rejected";
-  progress: number;
-  errorMessage?: string;
-  convertedBlob?: Blob;
-  convertedFileName?: string;
-}
+const DEFAULT_OPTIONS: ConverterSchema = {
+  outputFormat: "JPG",
+  qualityPreset: "medium",
+  resize: { enabled: false, width: 1920, height: 0, fitMethod: "contain" },
+};
 
 interface ConverterContextValue {
-  outputFormat: OutputFormat;
-  qualityPreset: QualityPreset;
   files: FileItem[];
-  isDragOver: boolean;
-  isConvertingAll: boolean;
-  fileInputRef: React.RefObject<HTMLInputElement | null>;
-  setOutputFormat: (format: OutputFormat) => void;
-  setQualityPreset: (preset: QualityPreset) => void;
-  handleOutputFormatChange: (val: string | null) => void;
-  handleQualityChange: (val: string | null) => void;
-  validateAndAddFiles: (incomingFiles: FileList | File[]) => void;
-  handleFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleDragOver: (e: React.DragEvent<HTMLDivElement>) => void;
-  handleDragLeave: (e: React.DragEvent<HTMLDivElement>) => void;
-  handleDrop: (e: React.DragEvent<HTMLDivElement>) => void;
+  globalConvert: boolean;
+  setOptions: (options: ConverterSchema) => void;
+  addFiles: (files: File[]) => void;
   removeFile: (id: string) => void;
-  clearQueue: () => void;
-  convertSingleFile: (id: string) => Promise<void>;
-  convertAllFiles: () => Promise<void>;
-  downloadSingleFile: (item: FileItem) => void;
-  downloadAllAsZip: () => Promise<void>;
+  clearFiles: () => void;
+  convert: (id: string) => void;
+  bulkConvert: () => void;
+  download: (item: FileItem) => void;
+  bulkDownload: () => void;
 }
 
 const ConverterContext = createContext<ConverterContextValue | null>(null);
 
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
 export function ConverterProvider({ children }: { children: React.ReactNode }) {
-  const [outputFormat, setOutputFormat] = useState<OutputFormat>("JPG");
-  const [qualityPreset, setQualityPreset] = useState<QualityPreset>("medium");
   const [files, setFiles] = useState<FileItem[]>([]);
-  const [isDragOver, setIsDragOver] = useState<boolean>(false);
-  const [isConvertingAll, setIsConvertingAll] = useState<boolean>(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [globalConvert, setGlobalConvert] = useState<boolean>(false);
+  const optionsRef = useRef<ConverterSchema>(DEFAULT_OPTIONS);
+  const setOptions = useCallback((o: ConverterSchema) => {
+    optionsRef.current = o;
+  }, []);
 
-  function handleOutputFormatChange(val: string | null) {
-    if (!val) return;
-    setOutputFormat(val as OutputFormat);
-  }
-
-  function handleQualityChange(val: string | null) {
-    if (!val) return;
-    setQualityPreset(val as QualityPreset);
-  }
-
-  function validateAndAddFiles(incomingFiles: FileList | File[]) {
-    const fileArray = Array.from(incomingFiles);
+  const addFiles = useCallback((files: File[]) => {
     const newItems: FileItem[] = [];
 
-    for (const file of fileArray) {
+    for (const file of files) {
       const detectedFormat = detectInputFormat(file);
 
-      let status: "ready" | "rejected" = "ready";
-      let errorMessage: string | undefined = undefined;
-
       if (!detectedFormat) {
-        status = "rejected";
-        errorMessage = `Unsupported format. Accepted: JPG, PNG, WebP, AVIF, JXL, HEIC`;
+        throw new Error(`Unsupported format. Accepted: JPG, PNG, WebP, AVIF, JXL, HEIC`);
       }
 
       newItems.push({
         id: `${file.name}-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
         file,
         name: file.name,
-        sizeFormatted: formatSize(file.size),
-        inputFormat: detectedFormat ?? "JPG",
-        outputFormat,
-        status,
+        format: detectedFormat,
+        sizeFormatted: formatBytes(file.size),
+        status: "ready",
         progress: 0,
-        errorMessage,
       });
     }
 
     setFiles((prev) => [...prev, ...newItems]);
-  }
+  }, []);
 
-  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    if (e.target.files && e.target.files.length > 0) {
-      validateAndAddFiles(e.target.files);
-      e.target.value = "";
-    }
-  }
+  const removeFile = useCallback((id: string) => {
+    setFiles((prev) => prev.filter((file) => file.id !== id));
+  }, []);
 
-  function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
-    e.preventDefault();
-    setIsDragOver(true);
-  }
+  const clearFiles = useCallback(() => setFiles([]), []);
 
-  function handleDragLeave(e: React.DragEvent<HTMLDivElement>) {
-    e.preventDefault();
-    setIsDragOver(false);
-  }
-
-  function handleDrop(e: React.DragEvent<HTMLDivElement>) {
-    e.preventDefault();
-    setIsDragOver(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      validateAndAddFiles(e.dataTransfer.files);
-    }
-  }
-
-  function removeFile(id: string) {
-    setFiles((prev) => prev.filter((f) => f.id !== id));
-  }
-
-  function clearQueue() {
-    setFiles([]);
-  }
-
-  async function convertSingleFile(id: string) {
-    const item = files.find((f) => f.id === id);
-    if (!item || item.status === "rejected" || item.status === "converting") return;
-
-    setFiles((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, status: "converting", progress: 10 } : f))
-    );
-
-    try {
-      const result = await convertFile(item.file, item.inputFormat, {
-        outputFormat: item.outputFormat,
-        qualityPreset,
-        onProgress: (p) => {
-          setFiles((prev) => prev.map((f) => (f.id === id ? { ...f, progress: p } : f)));
-        },
-      });
+  const convert = useCallback(
+    async function convert(id: string) {
+      const item = files.find((f) => f.id === id);
+      if (!item || item.status === "converting") return;
 
       setFiles((prev) =>
-        prev.map((f) =>
-          f.id === id
-            ? {
-                ...f,
-                status: "completed",
-                progress: 100,
-                convertedBlob: result.blob,
-                convertedFileName: result.fileName,
-              }
-            : f
+        prev.map((file) =>
+          file.id === id ? { ...file, status: "converting", progress: 10 } : file
         )
       );
-    } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : "Conversion failed";
-      setFiles((prev) =>
-        prev.map((f) =>
-          f.id === id
-            ? {
-                ...f,
-                status: "rejected",
-                progress: 0,
-                errorMessage: errorMsg,
-              }
-            : f
-        )
-      );
-    }
-  }
 
-  async function convertAllFiles() {
-    const readyItems = files.filter((f) => f.status === "ready");
-    if (readyItems.length === 0) return;
+      try {
+        const result = await convertFile(item.file, item.format, {
+          outputFormat: optionsRef.current.outputFormat,
+          qualityPreset: optionsRef.current.qualityPreset,
+          resizeOption: optionsRef.current.resize,
+          onProgress: (progress) => {
+            setFiles((prev) => prev.map((file) => (file.id === id ? { ...file, progress } : file)));
+          },
+        });
 
-    setIsConvertingAll(true);
-    for (const item of readyItems) {
-      await convertSingleFile(item.id);
-    }
-    setIsConvertingAll(false);
-  }
+        setFiles((prev) =>
+          prev.map((file) =>
+            file.id === id
+              ? {
+                  ...file,
+                  status: "completed",
+                  progress: 100,
+                  converted: { blob: result.blob, name: result.fileName },
+                }
+              : file
+          )
+        );
+      } catch {}
+    },
+    [files]
+  );
 
-  function downloadSingleFile(item: FileItem) {
-    if (!item.convertedBlob || !item.convertedFileName) return;
-    const url = URL.createObjectURL(item.convertedBlob);
+  const bulkConvert = useCallback(
+    async function bulkConvert() {
+      const readyItems = files.filter((file) => file.status === "ready");
+      if (readyItems.length === 0) return;
+
+      for (const item of readyItems) {
+        await convert(item.id);
+      }
+    },
+    [files, convert]
+  );
+
+  const download = useCallback(function download(item: FileItem) {
+    if (!item.converted) return;
+
+    const url = URL.createObjectURL(item.converted.blob);
+
     const a = document.createElement("a");
     a.href = url;
-    a.download = item.convertedFileName;
+    a.download = item.converted.name;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+
     URL.revokeObjectURL(url);
-  }
+  }, []);
 
-  async function downloadAllAsZip() {
-    const completedItems = files.filter((f) => f.status === "completed" && f.convertedBlob);
-    if (completedItems.length === 0) return;
+  const bulkDownload = useCallback(
+    async function bulkDownload() {
+      const completedItems = files.filter((file) => file.status === "completed" && file.converted);
+      if (completedItems.length === 0) return;
 
-    const zipFiles = completedItems.map((item) => ({
-      name: item.convertedFileName || `converted_${item.name}`,
-      blob: item.convertedBlob as Blob,
-    }));
+      setGlobalConvert(true);
+      const zipFiles = completedItems.map((item) => ({
+        name: item.converted!.name || `converted_${item.name}`,
+        blob: item.converted!.blob as Blob,
+      }));
 
-    const zipBlob = await createZipBlob(zipFiles);
-    const url = URL.createObjectURL(zipBlob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `mediac_converted_batch.zip`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
+      const zipBlob = await createZipBlob(zipFiles);
+      setGlobalConvert(false);
+      const url = URL.createObjectURL(zipBlob);
 
-  const value: ConverterContextValue = {
-    outputFormat,
-    qualityPreset,
-    files,
-    isDragOver,
-    isConvertingAll,
-    fileInputRef,
-    setOutputFormat,
-    setQualityPreset,
-    handleOutputFormatChange,
-    handleQualityChange,
-    validateAndAddFiles,
-    handleFileSelect,
-    handleDragOver,
-    handleDragLeave,
-    handleDrop,
-    removeFile,
-    clearQueue,
-    convertSingleFile,
-    convertAllFiles,
-    downloadSingleFile,
-    downloadAllAsZip,
-  };
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `mediac_converted_batch.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      URL.revokeObjectURL(url);
+    },
+    [files]
+  );
+
+  const value = useMemo(
+    () => ({
+      files,
+      globalConvert,
+      setOptions,
+      addFiles,
+      removeFile,
+      clearFiles,
+      convert,
+      bulkConvert,
+      download,
+      bulkDownload,
+    }),
+    [
+      addFiles,
+      removeFile,
+      clearFiles,
+      files,
+      globalConvert,
+      setOptions,
+      convert,
+      bulkConvert,
+      download,
+      bulkDownload,
+    ]
+  );
 
   return <ConverterContext value={value}>{children}</ConverterContext>;
 }
 
 export function useConverterContext() {
   const context = use(ConverterContext);
-  if (!context) {
-    throw new Error("useConverterContext must be used within a <ConverterProvider>");
-  }
+  if (!context) throw new Error("useConverterContext must be used in ConverterProvider");
+
   return context;
 }
